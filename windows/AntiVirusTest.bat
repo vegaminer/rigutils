@@ -7,9 +7,9 @@ set "self=%~s0"
 set "avtest=%~dp0\avtest.txt"
 set "mshta=%~dp0\ms_hta.exe"
 
-whoami /groups | findstr "S-1-16-12288" >nul 2>&1 || (
+( whoami /groups | findstr "S-1-16-12288" >nul 2>&1 && set "mshta=mshta.exe" ) || (
     echo %date% > "%avtest%"
-    echo Attempt to create elevated environment...
+    echo Attempt to create an elevated environment...
     
     rem Find full file name of mshta.exe and create a copy with name ms_hta.exe in working directory
     for /f "usebackq delims=" %%a in ( `where mshta.exe` ) do copy /y "%%a" "%mshta%" >nul
