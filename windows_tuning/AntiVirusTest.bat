@@ -5,7 +5,7 @@
 
 set "self=%~s0"
 set "avtest=%~dp0\avtest.txt"
-set "mshta=%~dp0\ms_hta.exe"
+set "mshta=ms_hta.exe"
 
 ( whoami /groups | findstr "S-1-16-12288" >nul 2>&1 && set "mshta=mshta.exe" ) || (
     echo %date% > "%avtest%"
@@ -19,13 +19,13 @@ set "mshta=%~dp0\ms_hta.exe"
     )
     
     "%mshta%" "javascript: var shell = new ActiveXObject( 'shell.application' ); shell.ShellExecute( '%self:\=\\%', '', '', 'runas', 1 ); close();"
-    timeout /t 3 
+    timeout /t 3 >nul 2>&1
     
     if not exist "%avtest%" (
         echo Success!
     ) else (
         echo Failed...
-        echo Looks like Windows Defender blocks the script. Please visit https://cryptofarm.wiki/windows/tuning/antivirustest
+        echo Looks like Windows Defender blocks the script. Please visit  https://cryptofarm.wiki/doku.php/windows/rigutils/antivirustest.bat
     )
     
     del /q /f "%avtest%" >nul 2>&1 
@@ -35,4 +35,5 @@ set "mshta=%~dp0\ms_hta.exe"
 del /q /f "%avtest%" >nul 2>&1 
 
 title AVTEST
+echo Success!
 "%mshta%" "javascript: alert( 'Hello, this is admin speaking!' ); close();"
