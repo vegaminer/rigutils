@@ -4,10 +4,12 @@
 @echo off
 
 :: This script has to be run with Admin rights, elevating if necessary.
-:: https://stackoverflow.com/questions/7044985/how-can-i-auto-elevate-my-batch-file-so-that-it-requests-from-uac-administrator
 set "self=%~s0"
 whoami /groups | findstr "S-1-16-12288" >nul 2>&1 || (
-
+    rem More info can be found here https://cryptofarm.wiki/doku.php/windows/rigutils/windows_tuning/antivirustest.bat
+    echo If Windows Defender blocks the script telling that this is a virus then visit the page
+    echo https://cryptofarm.wiki/doku.php/windows/rigutils/windows_tuning/antivirustest.bat
+    
     set "mshta=%~dp0\ms_hta.exe"
     for /f "usebackq delims=" %%a in ( `where mshta.exe` ) do copy /y "%%a" "%mshta%" >nul
     if not exist "%mshta%" (
