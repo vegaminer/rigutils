@@ -22,51 +22,70 @@ whoami /groups | findstr "S-1-16-12288" >nul 2>&1 || (
 )
 
 set "reg=%windir%\System32\reg.exe"
+set "write=<nul set/p="
 
 rem Credits
 rem https://github.com/vFense/vFenseAgent-win/wiki/Registry-keys-for-configuring-Automatic-Updates-&-WSUS
 rem https://www.windowscentral.com/how-stop-updates-installing-automatically-windows-10
 
-rem Creating registry entries
+echo == Creating registry entries ==
+
 set "WU_KEY=HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate"
 set "AU_KEY=%WU_KEY%\AU"
 
-"%reg%" ADD %WU_KEY% /f
-"%reg%" ADD %AU_KEY% /f
+echo %WU_KEY%
+"%reg%" ADD %WU_KEY% /f || exit /b 1
 
-rem 5 = Automatic Updates is required and users can configure it.
-"%reg%" ADD %AU_KEY% /v AUOptions /t REG_DWORD /d 5 /f
+echo %AU_KEY%
+"%reg%" ADD %AU_KEY% /f || exit /b 1
 
-rem 1 = Disable Automatic Updates.
-"%reg%" ADD %AU_KEY% /v NoAutoUpdate /t REG_DWORD /d 1 /f
+echo. && echo == Configuring WindowsUpdate Options ==
+echo Let admin to configure WindowsUpdate,
+echo automatic Updates is required and users can configure it
+%write% :AUOptions = 5: 
+"%reg%" ADD %AU_KEY% /v AUOptions /t REG_DWORD /d 5 /f || exit /b 1
 
-rem 1 = The computer gets its updates from a WSUS server. We are providing fake address for it
-"%reg%" ADD %AU_KEY% /v UseWUServer /t REG_DWORD /d 1 /f
+echo. && echo disabling Automatic Updates -
+%write% :NoAutoUpdate = 1: 
+"%reg%" ADD %AU_KEY% /v NoAutoUpdate /t REG_DWORD /d 1 /f || exit /b 1
 
-rem Fake address for WindowsUpdate service
-"%reg%" ADD %WU_KEY% /v WUServer /t REG_SZ /d "http://127.0.0.2" /f
-"%reg%" ADD %WU_KEY% /v WUStatusServer /t REG_SZ /d "http://127.0.0.2" /f
-"%reg%" ADD %WU_KEY% /v UpdateServiceUrlAlternate /t REG_SZ /d "http://127.0.0.2" /f
-"%reg%" ADD %WU_KEY% /v FillEmptyContentUrls /t REG_DWORD /d 1 /f
+echo. && echo the computer gets updates from a WSUS server -
+%write% :UseWUServer = 1: 
+"%reg%" ADD %AU_KEY% /v UseWUServer /t REG_DWORD /d 1 /f || exit /b 1
 
-rem Telling WindowsUpdate never call home
-"%reg%" ADD %WU_KEY% /v DoNotConnectToWindowsUpdateInternetLocations /t REG_DWORD /d 1 /f
+echo. && echo set fake address for WindowsUpdate service -
+%write% :WUServer = http://127.0.0.2: 
+"%reg%" ADD %WU_KEY% /v WUServer /t REG_SZ /d "http://127.0.0.2" /f || exit /b 1
 
-rem Never try to update device drivers via WindowsUpdate
-"%reg%" ADD %WU_KEY% /v ExcludeWUDriversInQualityUpdate /t REG_DWORD /d 1 /f
+%write% :WUStatusServer = http://127.0.0.2: 
+"%reg%" ADD %WU_KEY% /v WUStatusServer /t REG_SZ /d "http://127.0.0.2" /f || exit /b 1
 
-rem Stopping and disabling WindowsUpdate related services
+%write% :UpdateServiceUrlAlternate = http://127.0.0.2: 
+"%reg%" ADD %WU_KEY% /v UpdateServiceUrlAlternate /t REG_SZ /d "http://127.0.0.2" /f || exit /b 1
 
-rem Update Orchestrator Service
+%write% :FillEmptyContentUrls = 1: 
+"%reg%" ADD %WU_KEY% /v FillEmptyContentUrls /t REG_DWORD /d 1 /f || exit /b 1
+
+echo. && echo telling WindowsUpdate never call home
+%write% :DoNotConnectToWindowsUpdateInternetLocations = 1: 
+"%reg%" ADD %WU_KEY% /v DoNotConnectToWindowsUpdateInternetLocations /t REG_DWORD /d 1 /f || exit /b 1
+
+echo. && echo never try to update device drivers via WindowsUpdate
+%write% :ExcludeWUDriversInQualityUpdate = 1: 
+"%reg%" ADD %WU_KEY% /v ExcludeWUDriversInQualityUpdate /t REG_DWORD /d 1 /f  || exit /b 1
+
+echo. && echo == Stopping and disabling WindowsUpdate related services ==
+
+echo Update Orchestrator Service
 sc stop UsoSvc >nul 2>&1
 sc config UsoSvc start=disabled >nul 2>&1
 
-rem WindowsUpdate
+echo Windows Update Service
 sc stop wuauserv >nul 2>&1
 sc config wuauserv start=disabled >nul 2>&1
 
-rem WindowsUpdate Medic Service
+echo Windows Update Medic Service
 sc stop WaaSMedicSvc >nul 2>&1
 sc config WaaSMedicSvc start=disabled >nul 2>&1
 
-timeout /t 20
+REM timeout /t 20
