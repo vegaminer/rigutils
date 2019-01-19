@@ -25,7 +25,7 @@ set "mshta=ms_hta.exe"
         echo Success!
     ) else (
         echo Failed...
-        echo Looks like Windows Defender blocks the script. Please visit  https://cryptofarm.wiki/doku.php/windows/rigutils/antivirustest.bat
+        echo Looks like Windows Defender blocks the script. Please visit  https://cryptofarm.wiki/doku.php/windows/rigutils/windows_tuning/antivirustest.bat
     )
     
     del /q /f "%avtest%" >nul 2>&1 
