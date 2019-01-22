@@ -89,7 +89,7 @@ sc stop WaaSMedicSvc >nul 2>&1
 sc config WaaSMedicSvc start=disabled >nul 2>&1
 
 echo.
-echo Success!
+echo Success^!
 echo Windows Update Service was disabled.
 
 REM timeout /t 20
@@ -100,6 +100,6 @@ rem exitWithError
 rem
 :exitWithError
     echo.
-    echo Some error occurred!
-    echo Unable to disable Windows Update Service.
+    echo Some error occurred^!
+    echo Unable to block Windows Update Service.
 exit /b 1
