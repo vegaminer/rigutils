@@ -150,7 +150,6 @@ if "1" == "%allowWebGUI%" (
     echo.
 )
 
-:aaa
 ::
 rem Open Hardware Monitor TCP port 8085
 rem https://openhardwaremonitor.org
