@@ -33,7 +33,7 @@ rem More user interface settings could be found here - https://ss64.com/nt/synta
 rem Adjust settings to your taste.
 ::
 
-echo == Tweking interface settings in registry
+echo == Tweking interface settings in registry ==
 %write% Don't hide drive letters in file explorer...
 "%reg%" ADD %HCU_CurrentVersion%\Policies\Explorer /v NoDrives /t REG_DWORD /d 0 /f >nul && echo OK
 

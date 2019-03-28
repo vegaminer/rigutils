@@ -23,35 +23,56 @@ whoami /groups | findstr "S-1-16-12288" >nul 2>&1 || (
     exit /b
 )
 
-pushd "%~dp0"
-
 echo Credits https://github.com/crazy-max/WindowsSpyBlocker
+echo.
 
 set "hostsFile=%windir%\System32\drivers\etc\hosts"
 set "dataUrl=https://raw.githubusercontent.com/crazy-max/WindowsSpyBlocker/master/data/hosts"
 
-echo.
-echo updating %hostsFile%
-echo from %dataUrl%
+set "BackupDir=%~dp0ShutupTelemetry"
+if not exist "%BackupDir%" (
+    echo == Creating backup directory ==
+    echo   %BackupDir%
+    mkdir "%BackupDir%" || goto :exitWithError
+    echo.
+)
 
+pushd "%BackupDir%"
+
+echo == Creating bakup of current hosts file ==
+echo   src: %hostsFile%
+echo   bak: %BackupDir%\hosts.bak
+copy /y hosts.bak.1 hosts.bak.2 2>&1 >nul
+copy /y hosts.bak.0 hosts.bak.1 2>&1 >nul
+copy /y hosts.bak hosts.bak.0 2>&1 >nul
+copy /y "%hostsFile%" hosts.bak >nul || goto :exitWithError
+
+echo == Updating hosts file ==
+echo   src: %dataUrl%
+echo   dst: %hostsFile%
+
+echo   removing old WindowsShutup entries if any
 type "%hostsFile%" | findstr /V /C:"WindowsShutup" > hosts.txt
+echo. >> hosts.txt
 echo # [%date% %time%] WindowsShutup >> hosts.txt
 
-echo.
+echo   adding new entries from github:
 call :downloadFile update.txt || goto :exitWithError
 call :downloadFile spy.txt || goto :exitWithError
 call :downloadFile extra.txt || goto :exitWithError
 
-type hosts.txt > "%hostsFile%"
+rem answers.microsoft.com could be helpful ;)
+type hosts.txt | findstr /V /C:"answers" > "%hostsFile%"
 
-echo flushing DNS cache
-ipconfig /flushdns
+echo == Flushing DNS cache ==
+ipconfig /flushdns >nul || goto :exitWithError
 
 echo. 
 echo Success^!
 echo File %hostsFile% was updated
 
 REM timeout /t 20
+popd
 
 exit /b
 
@@ -62,7 +83,7 @@ rem
 	set "file=%~1"
     del /q /s /f "%file%" >nul 2>&1
     
-    echo Downloading file %file%
+    echo     %file%
 	powershell -Command "& { Invoke-WebRequest -Uri %dataUrl%/%file% -OutFile %file% }"
 	if not exist "%file%" (
         echo Error downloading %file%
@@ -70,9 +91,11 @@ rem
     )
     
     rem Adding # WindowsShutup to each entry
+    echo. >> hosts.txt
+    echo # %file% WindowsShutup >> hosts.txt
 	for /f "usebackq delims=" %%s in ( `type ^"%file%^"` ) do ( echo %%s # WindowsShutup >> hosts.txt )
 	
-	del /q /s /f "%file%" >nul 2>&1
+	REM del /q /s /f "%file%" >nul 2>&1
 exit /b 0
 
 rem
@@ -82,5 +105,6 @@ rem
     echo.
     echo Some error occurred^!
     echo Unable to block Windows Telemetry Service.
+    popd
 exit /b 1
                               
